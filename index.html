@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beyond CVSS · A Context-Aware Risk-Rating Model</title>
+
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Google Fonts: Spectral (serif headings), Inter (body), IBM Plex Mono (data) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Tailwind config: register thesis palette + fonts -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy:  "#1F3864",
+            blue:  "#2E75B6",
+            teal:  "#2A9D8F",
+            green: "#2E7D32",
+            amber: "#C9A227",
+            paper: "#F7F5EF", // warm paper background
+          },
+          fontFamily: {
+            serif: ['Spectral', 'Georgia', 'serif'],
+            sans:  ['Inter', 'system-ui', 'sans-serif'],
+            mono:  ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    html { background-color: #F7F5EF; }
+    body { -webkit-font-smoothing: antialiased; }
+
+    /* Subtle paper grain via layered gradients */
+    .paper-bg {
+      background-color: #F7F5EF;
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(31,56,100,0.04) 1px, transparent 0);
+      background-size: 22px 22px;
+    }
+
+    /* Range slider styling (accent works in modern browsers) */
+    input[type="range"] { accent-color: #2E75B6; }
+    input[type="range"]:focus-visible { outline: 2px solid #C9A227; outline-offset: 4px; }
+
+    .card-shadow { box-shadow: 0 1px 2px rgba(31,56,100,0.06), 0 8px 24px -12px rgba(31,56,100,0.22); }
+
+    /* Respect reduced-motion: kill smooth scroll + transitions */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition: none !important; animation: none !important; }
+    }
+
+    .tnum { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+
+<body class="paper-bg font-sans text-navy/90 antialiased">
+
+  <!-- ================================================================== -->
+  <!-- 1. HEADER / HERO                                                    -->
+  <!-- ================================================================== -->
+  <header class="relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-navy to-[#162a4d]"></div>
+    <div class="absolute inset-0 opacity-[0.07]"
+         style="background-image: radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0); background-size: 24px 24px;"></div>
+
+    <div class="relative mx-auto max-w-6xl px-6 py-20 md:py-28 text-paper">
+      <p class="font-mono text-xs md:text-sm uppercase tracking-[0.25em] text-amber mb-6">
+        Thesis Demonstration · Risk Analytics
+      </p>
+      <h1 class="font-serif text-4xl sm:text-5xl md:text-6xl font-600 leading-[1.05] tracking-tight">
+        Beyond CVSS:<br class="hidden sm:block" />
+        <span class="text-blue">A Context-Aware</span> Risk-Rating Model
+      </h1>
+      <p class="font-serif italic text-2xl md:text-3xl text-paper/90 mt-6">
+        Severity is not the same as risk.
+      </p>
+      <p class="max-w-2xl text-base md:text-lg text-paper/70 mt-5 leading-relaxed">
+        A context-aware cybersecurity maturity framework for higher-education
+        institutions — one risk-weighted score that fuses severity, exploitation
+        likelihood, and the institutional context an asset actually lives in.
+      </p>
+
+      <!-- The formula -->
+      <div class="mt-10 inline-block rounded-xl bg-paper/[0.06] ring-1 ring-paper/15 backdrop-blur px-5 py-4 md:px-7 md:py-5">
+        <p class="font-mono text-xs uppercase tracking-widest text-amber/90 mb-2">Context-Aware Risk Score · 0–10</p>
+        <p class="font-mono text-sm md:text-lg text-paper leading-relaxed">
+          R = 10 × ( w<sub>1</sub>·severity + w<sub>2</sub>·exploit + w<sub>3</sub>·criticality + w<sub>4</sub>·exposure )
+        </p>
+        <p class="font-mono text-[11px] md:text-xs text-paper/55 mt-2">
+          severity = CVSS / 10 · &nbsp; w<sub>1</sub>+w<sub>2</sub>+w<sub>3</sub>+w<sub>4</sub> = 1
+        </p>
+      </div>
+
+      <div class="mt-10 flex flex-wrap gap-3">
+        <a href="#try" class="rounded-lg bg-blue px-5 py-3 text-sm font-600 text-white hover:bg-blue/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber transition">
+          Try the model →
+        </a>
+        <a href="#priority" class="rounded-lg bg-paper/10 ring-1 ring-paper/25 px-5 py-3 text-sm font-600 text-paper hover:bg-paper/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber transition">
+          See prioritisation flip
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-6">
+
+    <!-- ================================================================== -->
+    <!-- 2. THE PROBLEM                                                      -->
+    <!-- ================================================================== -->
+    <section class="py-16 md:py-24" aria-labelledby="problem-h">
+      <p class="font-mono text-xs uppercase tracking-[0.22em] text-teal mb-3">01 · The gap</p>
+      <h2 id="problem-h" class="font-serif text-3xl md:text-4xl font-600 text-navy">
+        CVSS answers the wrong question
+      </h2>
+      <p class="max-w-2xl text-navy/70 mt-4 leading-relaxed">
+        The base score tells you how bad a flaw <em>could</em> be in the abstract.
+        It says nothing about whether <em>this</em> asset matters, whether it is reachable,
+        or whether anyone is exploiting it today.
+      </p>
+
+      <div class="grid gap-5 md:grid-cols-3 mt-10">
+        <article class="rounded-2xl bg-white card-shadow ring-1 ring-navy/5 p-6">
+          <div class="h-10 w-10 rounded-lg bg-amber/15 text-amber grid place-items-center font-mono font-600">a</div>
+          <h3 class="font-serif text-xl font-600 text-navy mt-4">Measures severity, not risk</h3>
+          <p class="text-sm text-navy/65 mt-2 leading-relaxed">
+            A 9.8 base score describes worst-case technical impact — not the probability
+            of harm to your institution. Severity is one input to risk, not risk itself.
+          </p>
+        </article>
+
+        <article class="rounded-2xl bg-white card-shadow ring-1 ring-navy/5 p-6">
+          <div class="h-10 w-10 rounded-lg bg-blue/15 text-blue grid place-items-center font-mono font-600">b</div>
+          <h3 class="font-serif text-xl font-600 text-navy mt-4">Blind to criticality &amp; exposure</h3>
+          <p class="text-sm text-navy/65 mt-2 leading-relaxed">
+            The same CVE on a public student-records system and on an isolated lab PC scores
+            identically. Asset value and network reachability never enter the equation.
+          </p>
+        </article>
+
+        <article class="rounded-2xl bg-white card-shadow ring-1 ring-navy/5 p-6">
+          <div class="h-10 w-10 rounded-lg bg-teal/15 text-teal grid place-items-center font-mono font-600">c</div>
+          <h3 class="font-serif text-xl font-600 text-navy mt-4">Ignores real exploitation</h3>
+          <p class="text-sm text-navy/65 mt-2 leading-relaxed">
+            Most high-severity CVEs are never exploited. Without an EPSS-style likelihood,
+            teams chase theoretical danger while active threats wait in the queue.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ================================================================== -->
+    <!-- 3. TRY IT  (interactive core)                                       -->
+    <!-- ================================================================== -->
+    <section id="try" class="py-16 md:py-24 scroll-mt-8" aria-labelledby="try-h">
+      <p class="font-mono text-xs uppercase tracking-[0.22em] text-teal mb-3">02 · Interactive</p>
+      <h2 id="try-h" class="font-serif text-3xl md:text-4xl font-600 text-navy">Try it</h2>
+      <p class="max-w-2xl text-navy/70 mt-4 leading-relaxed">
+        Move any input or weight and watch both scores recompute instantly. The four AHP
+        weights re-normalise to sum to 1 on every change.
+      </p>
+
+      <div class="grid gap-8 lg:grid-cols-2 mt-10 items-start">
+
+        <!-- ---- INPUTS ---- -->
+        <div class="rounded-2xl bg-white card-shadow ring-1 ring-navy/5 p-6 md:p-8">
+          <h3 class="font-serif text-xl font-600 text-navy">Vulnerability &amp; context inputs</h3>
+
+          <!-- CVSS -->
+          <div class="mt-6">
+            <div class="flex items-baseline justify-between">
+              <label for="cvss" class="text-sm font-500 text-navy">CVSS base score</label>
+              <output id="cvss-val" class="font-mono text-sm text-blue tnum">9.8</output>
+            </div>
+            <input id="cvss" type="range" min="0" max="10" step="0.1" value="9.8"
+                   class="w-full mt-2 cursor-pointer" aria-describedby="cvss-hint" />
+            <p id="cvss-hint" class="font-mono text-[11px] text-navy/40 mt-1">0 – 10 · technical severity</p>
+          </div>
+
+          <!-- EPSS -->
+          <div class="mt-5">
+            <div class="flex items-baseline justify-between">
+              <label for="epss" class="text-sm font-500 text-navy">EPSS exploit likelihood</label>
+              <output id="epss-val" class="font-mono text-sm text-blue tnum">0.05</output>
+            </div>
+            <input id="epss" type="range" min="0" max="1" step="0.01" value="0.05"
+                   class="w-full mt-2 cursor-pointer" />
+            <p class="font-mono text-[11px] text-navy/40 mt-1">0 – 1 · probability of exploitation</p>
+          </div>
+
+          <!-- Criticality -->
+          <div class="mt-5">
+            <div class="flex items-baseline justify-between">
+              <label for="crit" class="text-sm font-500 text-navy">Asset criticality</label>
+              <output id="crit-val" class="font-mono text-sm text-blue tnum">0.20</output>
+            </div>
+            <input id="crit" type="range" min="0" max="1" step="0.01" value="0.20"
+                   class="w-full mt-2 cursor-pointer" />
+            <p class="font-mono text-[11px] text-navy/40 mt-1">0 – 1 · institutional value of the asset</p>
+          </div>
+
+          <!-- Exposure -->
+          <div class="mt-5">
+            <div class="flex items-baseline justify-between">
+              <label for="exp" class="text-sm font-500 text-navy">Exposure</label>
+              <output id="exp-val" class="font-mono text-sm text-blue tnum">0.30</output>
+            </div>
+            <input id="exp" type="range" min="0" max="1" step="0.01" value="0.30"
+                   class="w-full mt-2 cursor-pointer" />
+            <p class="font-mono text-[11px] text-navy/40 mt-1">0 – 1 · network reachability / attack surface</p>
+          </div>
+
+          <!-- ---- WEIGHTS ---- -->
+          <div class="mt-8 pt-6 border-t border-navy/10">
+            <div class="flex items-center justify-between">
+              <h4 class="font-serif text-lg font-600 text-navy">AHP weights</h4>
+              <button id="reset" type="button"
+                class="font-mono text-xs uppercase tracking-wider text-blue hover:text-navy rounded px-2 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber transition">
+                ↺ Reset to defaults
+              </button>
+            </div>
+            <p class="font-mono text-[11px] text-navy/40 mt-1">Auto-normalised — always sums to 1.000</p>
+
+            <div class="grid sm:grid-cols-2 gap-x-6 gap-y-4 mt-4">
+              <div>
+                <div class="flex items-baseline justify-between">
+                  <label for="w1" class="text-sm text-navy">w₁ · severity</label>
+                  <output id="w1-val" class="font-mono text-xs text-teal tnum">0.300</output>
+                </div>
+                <input id="w1" type="range" min="0" max="1" step="0.01" value="0.30" class="w-full mt-1 cursor-pointer" />
+              </div>
+              <div>
+                <div class="flex items-baseline justify-between">
+                  <label for="w2" class="text-sm text-navy">w₂ · exploit</label>
+                  <output id="w2-val" class="font-mono text-xs text-teal tnum">0.300</output>
+                </div>
+                <input id="w2" type="range" min="0" max="1" step="0.01" value="0.30" class="w-full mt-1 cursor-pointer" />
+              </div>
+              <div>
+                <div class="flex items-baseline justify-between">
+                  <label for="w3" class="text-sm text-navy">w₃ · criticality</label>
+                  <output id="w3-val" class="font-mono text-xs text-teal tnum">0.250</output>
+                </div>
+                <input id="w3" type="range" min="0" max="1" step="0.01" value="0.25" class="w-full mt-1 cursor-pointer" />
+              </div>
+              <div>
+                <div class="flex items-baseline justify-between">
+                  <label for="w4" class="text-sm text-navy">w₄ · exposure</label>
+                  <output id="w4-val" class="font-mono text-xs text-teal tnum">0.150</output>
+                </div>
+                <input id="w4" type="range" min="0" max="1" step="0.01" value="0.15" class="w-full mt-1 cursor-pointer" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ---- OUTPUTS ---- -->
+        <div class="space-y-6">
+          <!-- Two big numbers -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="rounded-2xl bg-white card-shadow ring-1 ring-navy/5 p-6 text-center">
+              <p class="font-mono text-[11px] uppercase tracking-widest text-navy/45">CVSS-only score</p>
+              <p id="cvss-score" class="font-mono text-5xl md:text-6xl font-600 text-navy/80 mt-2 tnum">9.8</p>
+              <p class="text-xs text-navy/45 mt-1">severity in isolation</p>
+            </div>
+            <div class="rounded-2xl bg-navy card-shadow p-6 text-center ring-1 ring-navy">
+              <p class="font-mono text-[11px] uppercase tracking-widest text-amber">Context-aware risk</p>
+              <p id="ctx-score" class="font-mono text-5xl md:text-6xl font-600 text-white mt-2 tnum">4.0</p>
+              <p class="text-xs text-paper/55 mt-1">severity × context × likelihood</p>
+            </div>
+          </div>
+
+          <!-- Bar chart -->
+          <div class="rounded-2xl bg-white card-shadow ring-1 ring-navy/5 p-6">
+            <canvas id="compareChart" height="170" aria-label="Bar chart comparing CVSS-only score and context-aware risk score"></canvas>
+          </div>
+
+          <!-- Auto sentence -->
+          <div class="rounded-2xl bg-teal/5 ring-1 ring-teal/25 p-6">
+            <p class="font-mono text-[11px] uppercase tracking-widest text-teal mb-2">Interpretation</p>
+            <p id="explain" class="font-serif text-lg text-navy leading-relaxed">—</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================== -->
+    <!-- 4. PRIORITISATION CHANGES EVERYTHING                                -->
+    <!-- ================================================================== -->
+    <section id="priority" class="py-16 md:py-24 scroll-mt-8" aria-labelledby="prio-h">
+      <p class="font-mono text-xs uppercase tracking-[0.22em] text-teal mb-3">03 · Re-ranking</p>
+      <h2 id="prio-h" class="font-serif text-3xl md:text-4xl font-600 text-navy">
+        Prioritisation changes everything
+      </h2>
+      <p class="max-w-2xl text-navy/70 mt-4 leading-relaxed">
+        Six real-world higher-education vulnerabilities, scored with default AHP weights.
+        Sorting by context-aware risk instead of CVSS reshuffles the queue — the headline
+        OpenSSL flaw sinks, the quiet SQL injection rises to the top.
+      </p>
+
+      <!-- Data table -->
+      <div class="mt-10 overflow-x-auto rounded-2xl bg-white card-shadow ring-1 ring-navy/5">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left font-mono text-[11px] uppercase tracking-wider text-navy/50 border-b border-navy/10">
+              <th class="px-4 py-3 font-500">Vulnerability</th>
+              <th class="px-4 py-3 font-500 text-right">CVSS</th>
+              <th class="px-4 py-3 font-500 text-right">EPSS</th>
+              <th class="px-4 py-3 font-500 text-right">Crit</th>
+              <th class="px-4 py-3 font-500 text-right">Exp</th>
+              <th class="px-4 py-3 font-500 text-right">Risk</th>
+            </tr>
+          </thead>
+          <tbody id="vuln-table" class="divide-y divide-navy/5 font-mono text-navy/80"></tbody>
+        </table>
+      </div>
+
+      <!-- Two ranked lists -->
+      <div class="grid gap-6 md:grid-cols-2 mt-8">
+        <div class="rounded-2xl bg-white card-shadow ring-1 ring-navy/5 p-6">
+          <h3 class="font-serif text-xl font-600 text-navy/70">Ranked by CVSS</h3>
+          <p class="font-mono text-[11px] text-navy/40 mb-4">severity only</p>
+          <ol id="rank-cvss" class="space-y-2"></ol>
+        </div>
+        <div class="rounded-2xl bg-navy card-shadow p-6">
+          <h3 class="font-serif text-xl font-600 text-amber">Ranked by Context-Aware Risk</h3>
+          <p class="font-mono text-[11px] text-paper/45 mb-4">severity × context × likelihood</p>
+          <ol id="rank-ctx" class="space-y-2"></ol>
+        </div>
+      </div>
+      <p class="font-mono text-[11px] text-navy/45 mt-4 flex flex-wrap gap-x-5 gap-y-1">
+        <span><span class="text-green">▲</span> moved up vs CVSS rank</span>
+        <span><span class="text-amber">▼</span> moved down vs CVSS rank</span>
+        <span><span class="text-navy/40">—</span> unchanged</span>
+      </p>
+    </section>
+
+    <!-- ================================================================== -->
+    <!-- 5. WHAT EACH SYSTEM CAPTURES                                        -->
+    <!-- ================================================================== -->
+    <section class="py-16 md:py-24" aria-labelledby="matrix-h">
+      <p class="font-mono text-xs uppercase tracking-[0.22em] text-teal mb-3">04 · Landscape</p>
+      <h2 id="matrix-h" class="font-serif text-3xl md:text-4xl font-600 text-navy">
+        What each system captures
+      </h2>
+      <p class="max-w-2xl text-navy/70 mt-4 leading-relaxed">
+        Existing frameworks each cover part of the picture. Only the proposed model spans
+        severity, likelihood, institutional context, decision support, and maturity integration.
+      </p>
+
+      <div class="mt-10 overflow-x-auto rounded-2xl bg-white card-shadow ring-1 ring-navy/5">
+        <table class="w-full text-sm min-w-[640px]">
+          <thead>
+            <tr class="font-mono text-[11px] uppercase tracking-wider text-navy/50 border-b border-navy/10">
+              <th class="px-4 py-4 text-left font-500">System</th>
+              <th class="px-3 py-4 text-center font-500">Severity</th>
+              <th class="px-3 py-4 text-center font-500">Exploit&nbsp;likelihood</th>
+              <th class="px-3 py-4 text-center font-500">Asset / context</th>
+              <th class="px-3 py-4 text-center font-500">Decision&nbsp;support</th>
+              <th class="px-3 py-4 text-center font-500">Maturity&nbsp;integration</th>
+            </tr>
+          </thead>
+          <tbody id="matrix-body" class="divide-y divide-navy/5"></tbody>
+        </table>
+      </div>
+      <p class="font-mono text-[11px] text-navy/45 mt-3">
+        <span class="text-green font-600">✓</span> full &nbsp;·&nbsp;
+        <span class="text-amber font-600">◐</span> partial &nbsp;·&nbsp;
+        <span class="text-navy/40">—</span> absent
+      </p>
+    </section>
+
+    <!-- ================================================================== -->
+    <!-- 6. THE CONTRIBUTION                                                 -->
+    <!-- ================================================================== -->
+    <section class="pb-20 md:pb-28" aria-labelledby="contrib-h">
+      <div class="rounded-3xl bg-gradient-to-br from-navy to-[#162a4d] p-8 md:p-14 text-paper relative overflow-hidden">
+        <div class="absolute inset-0 opacity-[0.06]"
+             style="background-image: radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0); background-size: 22px 22px;"></div>
+        <div class="relative">
+          <p class="font-mono text-xs uppercase tracking-[0.22em] text-amber mb-3">05 · The contribution</p>
+          <h2 id="contrib-h" class="font-serif text-3xl md:text-4xl font-600 text-white max-w-3xl">
+            One risk-weighted score that feeds a maturity assessment
+          </h2>
+          <p class="max-w-3xl text-paper/80 mt-5 text-lg leading-relaxed">
+            This model integrates technical severity, real-world exploitation likelihood, and
+            institutional context — asset criticality and exposure — into a single, AHP-weighted
+            risk score on a 0–10 scale. Unlike severity-only systems such as CVSS, that score is
+            not an endpoint: it feeds directly into a higher-education cybersecurity
+            <em>maturity</em> assessment, linking individual vulnerability triage to
+            institutional capability. The result is prioritisation that reflects what is actually
+            at risk, and a measurable bridge from day-to-day remediation to long-term security maturity.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================================================================== -->
+  <!-- FOOTER                                                              -->
+  <!-- ================================================================== -->
+  <footer class="border-t border-navy/10">
+    <div class="mx-auto max-w-6xl px-6 py-10 text-sm text-navy/55">
+      <p class="font-serif italic text-base text-navy/70">Severity is not the same as risk.</p>
+      <p class="mt-2">
+        Demonstration accompanying [Author], thesis on a context-aware cybersecurity
+        maturity framework for higher education.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ================================================================== -->
+  <!-- SCORING MODEL + INTERACTIVITY                                       -->
+  <!-- ================================================================== -->
+  <script>
+  "use strict";
+
+  /* =================================================================
+   *  SCORING MODEL  — tweak here
+   * =================================================================
+   *  Context-Aware Risk Score (0–10) =
+   *      10 * ( w1*severity + w2*exploit + w3*criticality + w4*exposure )
+   *
+   *    severity   = CVSS base score / 10        (0–1)
+   *    exploit    = EPSS-style probability       (0–1)
+   *    criticality= institutional asset value    (0–1)
+   *    exposure   = network reachability         (0–1)
+   *    w1..w4 are AHP-derived weights that SUM TO 1.
+   * ================================================================= */
+
+  // ---- Default (AHP-derived) weights. Change these to re-baseline. ----
+  const DEFAULT_WEIGHTS = { w1: 0.30, w2: 0.30, w3: 0.25, w4: 0.15 };
+
+  /**
+   * Core scoring function.
+   * @param {object} v  - { cvss(0–10), epss(0–1), crit(0–1), exp(0–1) }
+   * @param {object} w  - { w1, w2, w3, w4 } (need not pre-sum to 1; normalised inside)
+   * @returns {number}  context-aware risk score on 0–10
+   */
+  function contextAwareRisk(v, w) {
+    const severity = v.cvss / 10;                 // CVSS → 0–1
+    const sum = w.w1 + w.w2 + w.w3 + w.w4 || 1;   // guard against all-zero
+    const n1 = w.w1 / sum, n2 = w.w2 / sum, n3 = w.w3 / sum, n4 = w.w4 / sum;
+    return 10 * (n1 * severity + n2 * v.epss + n3 * v.crit + n4 * v.exp);
+  }
+
+  // CVSS-only "score" is just the base score itself (already 0–10).
+  const cvssOnly = (v) => v.cvss;
+
+  /* =================================================================
+   *  EXAMPLE VULNERABILITY SET (Section 4) — exact thesis values
+   * ================================================================= */
+  const VULNS = [
+    { name: "OpenSSL flaw in library catalogue",   short: "OpenSSL · library catalogue", cvss: 9.8, epss: 0.05, crit: 0.20, exp: 0.30 },
+    { name: "SQL injection in student records (SIS)", short: "SQLi · student records",     cvss: 7.5, epss: 0.60, crit: 0.95, exp: 0.90 },
+    { name: "RCE in SSO authentication gateway",    short: "RCE · SSO gateway",           cvss: 8.8, epss: 0.40, crit: 0.90, exp: 0.85 },
+    { name: "Privilege escalation on lab workstation", short: "PrivEsc · lab workstation", cvss: 7.8, epss: 0.10, crit: 0.30, exp: 0.20 },
+    { name: "XSS in public admissions portal",      short: "XSS · admissions portal",     cvss: 6.1, epss: 0.70, crit: 0.60, exp: 0.95 },
+    { name: "DoS in internal print server",         short: "DoS · print server",          cvss: 5.3, epss: 0.02, crit: 0.15, exp: 0.10 },
+  ];
+
+  /* =================================================================
+   *  DOM refs
+   * ================================================================= */
+  const $ = (id) => document.getElementById(id);
+  const inputs  = { cvss: $("cvss"), epss: $("epss"), crit: $("crit"), exp: $("exp") };
+  const weights = { w1: $("w1"), w2: $("w2"), w3: $("w3"), w4: $("w4") };
+
+  /* =================================================================
+   *  WEIGHT NORMALISATION
+   *  Sliders hold "raw" preferences; we always render & score with the
+   *  normalised set so w1+w2+w3+w4 = 1 on every change.
+   * ================================================================= */
+  function normalisedWeights() {
+    const raw = {
+      w1: parseFloat(weights.w1.value),
+      w2: parseFloat(weights.w2.value),
+      w3: parseFloat(weights.w3.value),
+      w4: parseFloat(weights.w4.value),
+    };
+    const sum = raw.w1 + raw.w2 + raw.w3 + raw.w4;
+    if (sum === 0) return { w1: 0.25, w2: 0.25, w3: 0.25, w4: 0.25 };
+    return { w1: raw.w1/sum, w2: raw.w2/sum, w3: raw.w3/sum, w4: raw.w4/sum };
+  }
+
+  /* =================================================================
+   *  Chart.js — comparison bar chart
+   * ================================================================= */
+  const chartCtx = $("compareChart").getContext("2d");
+  const compareChart = new Chart(chartCtx, {
+    type: "bar",
+    data: {
+      labels: ["CVSS-only", "Context-aware"],
+      datasets: [{
+        label: "Score (0–10)",
+        data: [9.8, 4.0],
+        backgroundColor: ["#94a3b8", "#2E75B6"],
+        borderRadius: 8,
+        maxBarThickness: 96,
+      }],
+    },
+    options: {
+      animation: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : { duration: 350 },
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true, max: 10,
+          ticks: { color: "#1F3864", font: { family: "IBM Plex Mono", size: 11 } },
+          grid: { color: "rgba(31,56,100,0.08)" },
+        },
+        x: {
+          ticks: { color: "#1F3864", font: { family: "Inter", size: 13, weight: "600" } },
+          grid: { display: false },
+        },
+      },
+    },
+  });
+
+  /* =================================================================
+   *  Auto-generated interpretation sentence
+   * ================================================================= */
+  function buildExplanation(v, cvss, ctx) {
+    const delta = ctx - cvss;
+    const hi = (x) => x >= 0.66, lo = (x) => x <= 0.34;
+    const sevWord = v.cvss >= 7 ? "high-severity" : v.cvss >= 4 ? "medium-severity" : "low-severity";
+
+    // Context descriptors
+    const ctxBits = [];
+    ctxBits.push(hi(v.crit) ? "high-criticality" : lo(v.crit) ? "low-criticality" : "moderate-criticality");
+    ctxBits.push(hi(v.exp)  ? "high-exposure"    : lo(v.exp)  ? "low-exposure"    : "moderate-exposure");
+    const exploitWord = hi(v.epss) ? "actively exploited" : lo(v.epss) ? "rarely exploited" : "occasionally exploited";
+
+    if (delta <= -1.0) {
+      return `A ${sevWord} flaw, but it sits on a ${ctxBits.join(", ")} asset and is ${exploitWord} — so real risk (${ctx.toFixed(1)}) lands well below what CVSS (${cvss.toFixed(1)}) suggests.`;
+    }
+    if (delta >= 1.0) {
+      return `CVSS rates this only ${cvss.toFixed(1)}, but on a ${ctxBits.join(", ")} asset that is ${exploitWord}, context-aware risk climbs to ${ctx.toFixed(1)} — it deserves more attention than severity implies.`;
+    }
+    return `Severity and context roughly agree here: a ${sevWord}, ${exploitWord} issue on a ${ctxBits.join(", ")} asset yields a context-aware risk of ${ctx.toFixed(1)} versus a CVSS of ${cvss.toFixed(1)}.`;
+  }
+
+  /* =================================================================
+   *  RENDER: interactive section
+   * ================================================================= */
+  function renderInteractive() {
+    const w = normalisedWeights();
+
+    // Echo input values
+    $("cvss-val").textContent = parseFloat(inputs.cvss.value).toFixed(1);
+    $("epss-val").textContent = parseFloat(inputs.epss.value).toFixed(2);
+    $("crit-val").textContent = parseFloat(inputs.crit.value).toFixed(2);
+    $("exp-val").textContent  = parseFloat(inputs.exp.value ).toFixed(2);
+
+    // Echo normalised weights
+    $("w1-val").textContent = w.w1.toFixed(3);
+    $("w2-val").textContent = w.w2.toFixed(3);
+    $("w3-val").textContent = w.w3.toFixed(3);
+    $("w4-val").textContent = w.w4.toFixed(3);
+
+    const v = {
+      cvss: parseFloat(inputs.cvss.value),
+      epss: parseFloat(inputs.epss.value),
+      crit: parseFloat(inputs.crit.value),
+      exp:  parseFloat(inputs.exp.value),
+    };
+
+    const cvss = cvssOnly(v);
+    const ctx  = contextAwareRisk(v, w);
+
+    $("cvss-score").textContent = cvss.toFixed(1);
+    $("ctx-score").textContent  = ctx.toFixed(1);
+
+    compareChart.data.datasets[0].data = [cvss, ctx];
+    compareChart.update();
+
+    $("explain").textContent = buildExplanation(v, cvss, ctx);
+  }
+
+  /* =================================================================
+   *  RENDER: prioritisation table + ranked lists (Section 4)
+   *  Uses DEFAULT weights so the example matches the thesis figures.
+   * ================================================================= */
+  function renderPrioritisation() {
+    const scored = VULNS.map((x) => ({
+      ...x,
+      risk: contextAwareRisk(x, DEFAULT_WEIGHTS),
+    }));
+
+    // Rankings (1 = highest)
+    const byCvss = [...scored].sort((a, b) => b.cvss - a.cvss);
+    const byCtx  = [...scored].sort((a, b) => b.risk - a.risk);
+    const cvssRank = new Map(byCvss.map((x, i) => [x.name, i + 1]));
+    const ctxRank  = new Map(byCtx.map( (x, i) => [x.name, i + 1]));
+
+    // --- Table (original order) ---
+    $("vuln-table").innerHTML = scored.map((x) => `
+      <tr class="hover:bg-paper/60 transition">
+        <td class="px-4 py-3 font-sans text-navy">${x.name}</td>
+        <td class="px-4 py-3 text-right">${x.cvss.toFixed(1)}</td>
+        <td class="px-4 py-3 text-right">${x.epss.toFixed(2)}</td>
+        <td class="px-4 py-3 text-right">${x.crit.toFixed(2)}</td>
+        <td class="px-4 py-3 text-right">${x.exp.toFixed(2)}</td>
+        <td class="px-4 py-3 text-right font-600 text-navy">${x.risk.toFixed(2)}</td>
+      </tr>`).join("");
+
+    // --- Ranked by CVSS (left) ---
+    $("rank-cvss").innerHTML = byCvss.map((x, i) => `
+      <li class="flex items-center gap-3 rounded-lg bg-paper/60 px-3 py-2">
+        <span class="font-mono text-sm text-navy/40 w-5">${i + 1}</span>
+        <span class="flex-1 text-sm text-navy/75">${x.short}</span>
+        <span class="font-mono text-sm text-navy/60 tnum">${x.cvss.toFixed(1)}</span>
+      </li>`).join("");
+
+    // --- Ranked by Context-Aware Risk (right) with movement arrows ---
+    $("rank-ctx").innerHTML = byCtx.map((x, i) => {
+      const newRank = i + 1;
+      const oldRank = cvssRank.get(x.name);
+      const move = oldRank - newRank; // +ve = moved up
+      let badge;
+      if (move > 0)      badge = `<span class="text-green font-600" title="up ${move} from CVSS rank ${oldRank}">▲${move}</span>`;
+      else if (move < 0) badge = `<span class="text-amber font-600" title="down ${-move} from CVSS rank ${oldRank}">▼${-move}</span>`;
+      else               badge = `<span class="text-paper/35">—</span>`;
+      const emphasise = newRank === 1 ? "ring-1 ring-amber/50 bg-amber/10" : "bg-paper/10";
+      return `
+      <li class="flex items-center gap-3 rounded-lg ${emphasise} px-3 py-2">
+        <span class="font-mono text-sm text-amber w-5">${newRank}</span>
+        <span class="flex-1 text-sm text-paper/90">${x.short}</span>
+        <span class="font-mono text-xs w-8 text-right">${badge}</span>
+        <span class="font-mono text-sm text-paper/80 tnum w-10 text-right">${x.risk.toFixed(2)}</span>
+      </li>`;
+    }).join("");
+  }
+
+  /* =================================================================
+   *  RENDER: capability matrix (Section 5)
+   * ================================================================= */
+  const MATRIX = [
+    // [system, severity, exploit, context, decision, maturity]   v=full, p=partial, x=absent
+    { sys: "CVSS",      row: ["v", "x", "x", "x", "x"], mine: false },
+    { sys: "EPSS",      row: ["x", "v", "x", "p", "x"], mine: false },
+    { sys: "SSVC",      row: ["p", "p", "p", "v", "x"], mine: false },
+    { sys: "NIST CSF",  row: ["x", "x", "p", "p", "v"], mine: false },
+    { sys: "My model",  row: ["v", "v", "v", "v", "v"], mine: true  },
+  ];
+
+  function renderMatrix() {
+    const mark = (m) => {
+      if (m === "v") return `<span class="text-green font-600 text-lg" aria-label="full">✓</span>`;
+      if (m === "p") return `<span class="text-amber font-600 text-lg" aria-label="partial">◐</span>`;
+      return `<span class="text-navy/30 text-lg" aria-label="absent">—</span>`;
+    };
+    $("matrix-body").innerHTML = MATRIX.map((r) => {
+      const rowCls = r.mine
+        ? "bg-navy text-paper"
+        : "hover:bg-paper/60 transition";
+      const sysCls = r.mine ? "text-amber font-600" : "text-navy font-500";
+      return `
+      <tr class="${rowCls}">
+        <td class="px-4 py-4 font-serif text-base ${sysCls}">${r.sys}${r.mine ? ' <span class="font-mono text-[10px] uppercase tracking-wider text-amber/80">proposed</span>' : ''}</td>
+        ${r.row.map((m) => `<td class="px-3 py-4 text-center">${mark(m)}</td>`).join("")}
+      </tr>`;
+    }).join("");
+  }
+
+  /* =================================================================
+   *  WIRING
+   * ================================================================= */
+  Object.values(inputs).forEach((el)  => el.addEventListener("input", renderInteractive));
+  Object.values(weights).forEach((el) => el.addEventListener("input", renderInteractive));
+
+  $("reset").addEventListener("click", () => {
+    inputs.cvss.value = 9.8; inputs.epss.value = 0.05; inputs.crit.value = 0.20; inputs.exp.value = 0.30;
+    weights.w1.value = DEFAULT_WEIGHTS.w1;
+    weights.w2.value = DEFAULT_WEIGHTS.w2;
+    weights.w3.value = DEFAULT_WEIGHTS.w3;
+    weights.w4.value = DEFAULT_WEIGHTS.w4;
+    renderInteractive();
+  });
+
+  // Initial paint
+  renderInteractive();
+  renderPrioritisation();
+  renderMatrix();
+  </script>
+</body>
+</html>
