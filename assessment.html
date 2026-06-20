@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Institutional Self-Assessment · Context-Aware Maturity Framework</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy:  "#1F3864", blue:  "#2E75B6", teal:  "#2A9D8F",
+            green: "#2E7D32", amber: "#C9A227", paper: "#F7F5EF",
+          },
+          fontFamily: {
+            serif: ['Spectral', 'Georgia', 'serif'],
+            sans:  ['Inter', 'system-ui', 'sans-serif'],
+            mono:  ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="paper-bg font-sans text-navy/90">
+
+  <!-- ============================================================ -->
+  <!-- HERO                                                          -->
+  <!-- ============================================================ -->
+  <header class="hero-dark">
+    <div class="mx-auto max-w-6xl px-6 pt-12 pb-16 md:pt-16 md:pb-20">
+      <a href="index.html" class="back-link">← Back to the risk model</a>
+
+      <p class="eyebrow text-amber mt-8">Institutional Self-Assessment</p>
+      <h1 class="font-serif text-4xl sm:text-5xl md:text-[56px] font-600 leading-[1.06] tracking-tight text-white mt-5 max-w-4xl">
+        Where does your institution<br class="hidden sm:block" /> actually stand?
+      </h1>
+      <div class="mt-6 h-px w-24 bg-amber"></div>
+      <p class="max-w-2xl text-base md:text-lg text-paper/70 mt-6 leading-relaxed">
+        Answer the questions below to measure your institution against the seven
+        maturity dimensions of the framework, and to profile any asset's
+        <strong class="text-paper">criticality</strong> and
+        <strong class="text-paper">exposure</strong>. The maturity model maps to
+        ISO/IEC&nbsp;27001 and the NIST Cybersecurity Framework, adapted to the
+        higher-education context. Everything is computed live in your browser —
+        nothing is sent anywhere.
+      </p>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-6">
+
+    <!-- ============================================================ -->
+    <!-- 01 · THE MATURITY SCALE                                       -->
+    <!-- ============================================================ -->
+    <section class="py-16 md:py-20 border-b border-navy/10" aria-labelledby="scale-h">
+      <p class="section-num">01</p>
+      <h2 id="scale-h" class="section-title">The six-level maturity scale</h2>
+      <p class="lede mt-5">
+        Every indicator is rated 0–5. The scale is <strong>cumulative</strong>: a
+        higher level may only be claimed once all lower levels are satisfied. Pick the
+        highest level your institution has genuinely reached for each indicator.
+      </p>
+      <div id="scale-cards" class="scale-grid mt-10"></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 02 · MATURITY QUESTIONNAIRE                                   -->
+    <!-- ============================================================ -->
+    <section class="py-16 md:py-20 border-b border-navy/10" aria-labelledby="mat-h">
+      <p class="section-num">02</p>
+      <h2 id="mat-h" class="section-title">Maturity self-assessment</h2>
+      <p class="lede mt-5">
+        Seven dimensions, grouped by NIST function. Rate each indicator on the 0–5
+        scale; your dimension and overall maturity update as you go.
+      </p>
+
+      <div class="mt-10 grid gap-8 lg:grid-cols-[7fr_5fr] items-start">
+        <!-- questionnaire -->
+        <div id="maturity-dims" class="space-y-6"></div>
+
+        <!-- live results (sticky on desktop) -->
+        <div class="lg:sticky lg:top-6 space-y-5">
+          <div class="panel score-panel">
+            <p class="eyebrow text-navy/55">Overall maturity</p>
+            <div class="flex items-end gap-3 mt-2">
+              <p id="mat-overall" class="font-mono text-6xl font-600 text-navy tnum leading-none">0.0</p>
+              <p class="font-mono text-2xl text-navy/40 mb-1">/ 5</p>
+            </div>
+            <p id="mat-level" class="risk-band risk-low mt-3">LEVEL 0 · INCOMPLETE</p>
+            <p id="mat-level-desc" class="text-sm text-navy/65 mt-3 leading-relaxed"></p>
+
+            <div class="mt-5 pt-5 border-t border-navy/10">
+              <p class="eyebrow text-navy/55 mb-1">Priority focus</p>
+              <p id="mat-priority" class="text-sm text-navy/75 leading-relaxed">—</p>
+            </div>
+            <button id="mat-reset" type="button" class="link-btn mt-4">↺ Reset all answers</button>
+          </div>
+
+          <div class="panel">
+            <h3 class="panel-h">By dimension</h3>
+            <div id="mat-bars" class="mt-4 space-y-3"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 03 · ASSET PROFILE                                            -->
+    <!-- ============================================================ -->
+    <section class="py-16 md:py-20 border-b border-navy/10" aria-labelledby="asset-h">
+      <p class="section-num">03</p>
+      <h2 id="asset-h" class="section-title">Profile an asset: criticality &amp; exposure</h2>
+      <p class="lede mt-5">
+        Answer for a specific system — a student records database, a public portal, a
+        lab workstation. The answers translate into the <strong>criticality (c)</strong>
+        and <strong>exposure (x)</strong> values used by the risk model, each on a 0–1 scale.
+      </p>
+
+      <div class="mt-10 grid gap-8 md:grid-cols-2 items-start">
+        <!-- Criticality -->
+        <div class="panel">
+          <div class="flex items-center justify-between">
+            <h3 class="panel-h"><span class="dot dot-crit"></span>Asset criticality</h3>
+            <output id="crit-score" class="num-out text-2xl">0.00</output>
+          </div>
+          <p class="text-sm text-navy/60 mt-1">How much the institution depends on this asset.</p>
+          <div class="meter mt-3"><div id="crit-meter" class="meter-fill meter-crit"></div></div>
+          <div id="crit-questions" class="mt-5 space-y-5"></div>
+        </div>
+
+        <!-- Exposure -->
+        <div class="panel">
+          <div class="flex items-center justify-between">
+            <h3 class="panel-h"><span class="dot dot-expo"></span>Exposure</h3>
+            <output id="exp-score" class="num-out text-2xl">0.00</output>
+          </div>
+          <p class="text-sm text-navy/60 mt-1">How reachable and attackable this asset is.</p>
+          <div class="meter mt-3"><div id="exp-meter" class="meter-fill meter-expo"></div></div>
+          <div id="exp-questions" class="mt-5 space-y-5"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 04 · FEED INTO THE RISK MODEL                                 -->
+    <!-- ============================================================ -->
+    <section class="py-16 md:py-24" aria-labelledby="feed-h">
+      <div class="contrib-callout">
+        <p class="eyebrow text-amber mb-3">04 · Connect it up</p>
+        <h2 id="feed-h" class="font-serif text-3xl md:text-4xl font-600 text-white max-w-3xl leading-tight">
+          Carry this asset profile straight into the risk score.
+        </h2>
+        <p class="max-w-3xl text-paper/85 mt-5 text-lg leading-relaxed">
+          The criticality and exposure you just measured are two of the four inputs to
+          the context-aware risk score. Send them to the calculator, then add a CVSS
+          base score and EPSS likelihood to see this asset's real, context-adjusted risk.
+        </p>
+
+        <div class="feed-readout mt-8">
+          <div><span class="eyebrow text-paper/55">Criticality · c</span><span id="feed-crit" class="feed-num">0.00</span></div>
+          <div><span class="eyebrow text-paper/55">Exposure · x</span><span id="feed-exp" class="feed-num">0.00</span></div>
+        </div>
+
+        <a id="feed-link" href="index.html#try" class="btn-primary mt-8">Open the risk calculator with these values →</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-navy/10">
+    <div class="mx-auto max-w-6xl px-6 py-10 text-sm text-navy/60">
+      <p class="font-serif italic text-base text-navy/80">Severity is not the same as risk — and capability is not the same as maturity.</p>
+      <p class="mt-2">
+        Demonstration accompanying [Author], thesis on a context-aware cybersecurity
+        maturity framework for higher education. Maturity dimensions and the 0–5 scale
+        are drafts intended for expert validation.
+      </p>
+    </div>
+  </footer>
+
+  <script src="assessment.js" defer></script>
+</body>
+</html>

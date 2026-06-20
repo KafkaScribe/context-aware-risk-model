@@ -428,8 +428,27 @@ $("reset").addEventListener("click", () => {
 });
 
 /* =================================================================
+ *  PREFILL FROM ASSESSMENT PAGE
+ *  assessment.html links here as  index.html?crit=0.xx&exp=0.yy#try
+ *  so a measured asset profile flows straight into the calculator.
+ * ================================================================= */
+function applyUrlParams() {
+  const p = new URLSearchParams(window.location.search);
+  const clamp01 = (v) => Math.max(0, Math.min(1, v));
+  if (p.has("crit")) {
+    const c = parseFloat(p.get("crit"));
+    if (!Number.isNaN(c)) inputs.crit.value = clamp01(c);
+  }
+  if (p.has("exp")) {
+    const x = parseFloat(p.get("exp"));
+    if (!Number.isNaN(x)) inputs.exp.value = clamp01(x);
+  }
+}
+
+/* =================================================================
  *  INIT
  * ================================================================= */
+applyUrlParams();
 renderPresets();
 renderInteractive();
 syncPresetPressed();

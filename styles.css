@@ -579,3 +579,191 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(
     animation: none !important;
   }
 }
+
+/* =================================================================
+ *  ASSESSMENT PAGE (assessment.html)
+ * ================================================================= */
+
+/* back link in dark hero */
+.back-link {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: rgba(247, 245, 239, 0.7);
+  transition: color 0.15s ease;
+}
+.back-link:hover { color: var(--amber); }
+
+/* ---------- Maturity scale reference cards ----------------------- */
+.scale-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 640px) { .scale-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 980px) { .scale-grid { grid-template-columns: repeat(6, 1fr); } }
+.scale-card {
+  background: #fff;
+  border: 1px solid rgba(31, 56, 100, 0.1);
+  border-top: 3px solid var(--navy);
+  border-radius: 0.6rem;
+  padding: 0.9rem;
+}
+.scale-card[data-lvl="0"] { border-top-color: #b91c1c; }
+.scale-card[data-lvl="1"] { border-top-color: #d97706; }
+.scale-card[data-lvl="2"] { border-top-color: var(--amber); }
+.scale-card[data-lvl="3"] { border-top-color: var(--blue); }
+.scale-card[data-lvl="4"] { border-top-color: var(--teal); }
+.scale-card[data-lvl="5"] { border-top-color: var(--green); }
+.scale-n {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--navy);
+  line-height: 1;
+}
+.scale-label {
+  font-family: "Spectral", serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--navy);
+  margin-top: 0.35rem;
+}
+.scale-desc { font-size: 0.72rem; color: rgba(31, 56, 100, 0.6); margin-top: 0.35rem; line-height: 1.45; }
+
+/* ---------- Dimension panels ------------------------------------- */
+.dim-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.fn-tag {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--teal);
+  background: rgba(42, 157, 143, 0.1);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+.dim-score {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+.dim-score::after { content: " /5"; font-size: 0.8rem; color: rgba(31, 56, 100, 0.4); }
+
+.indicators { display: grid; gap: 0.9rem; }
+.indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.ind-label { font-size: 0.875rem; color: var(--navy); flex: 1 1 14rem; }
+
+/* segmented 0–5 control built from radio inputs */
+.seg {
+  display: inline-flex;
+  border: 1px solid rgba(31, 56, 100, 0.18);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.seg-input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.seg-label {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(31, 56, 100, 0.55);
+  cursor: pointer;
+  border-right: 1px solid rgba(31, 56, 100, 0.12);
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.seg-label:last-of-type { border-right: none; }
+.seg-label:hover { background: rgba(46, 117, 182, 0.08); }
+/* checked → fill this segment and everything to its left (cumulative look) */
+.seg-input:checked ~ .seg-label { /* placeholder, see sibling rules below */ }
+.seg-input:checked + .seg-label {
+  background: var(--navy);
+  color: #fff;
+}
+.seg-input:focus-visible + .seg-label { outline: 2px solid var(--amber); outline-offset: -2px; }
+
+/* ---------- By-dimension result bars ----------------------------- */
+.mbar-row { display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 0.6rem; align-items: center; }
+.mbar-label { font-size: 0.78rem; color: rgba(31, 56, 100, 0.75); grid-column: 1 / -1; }
+.mbar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(31, 56, 100, 0.08);
+  overflow: hidden;
+}
+.mbar-fill { height: 100%; border-radius: 999px; transition: width 0.3s ease, background 0.3s ease; }
+.mbar-val {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Criticality / exposure meters ------------------------ */
+.meter {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(31, 56, 100, 0.08);
+  overflow: hidden;
+}
+.meter-fill { height: 100%; border-radius: 999px; transition: width 0.3s ease; }
+.meter-crit { background: var(--teal); }
+.meter-expo { background: var(--amber); }
+
+/* ---------- Question blocks -------------------------------------- */
+.qblock { border: none; margin: 0; padding: 0; }
+.qlabel { font-size: 0.875rem; font-weight: 500; color: var(--navy); margin-bottom: 0.5rem; }
+.qoptions { display: grid; gap: 0.4rem; }
+.qopt {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: 0.82rem;
+  color: rgba(31, 56, 100, 0.8);
+  padding: 0.45rem 0.6rem;
+  border: 1px solid rgba(31, 56, 100, 0.12);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.qopt:hover { border-color: var(--blue); background: rgba(46, 117, 182, 0.04); }
+.qopt input { margin-top: 0.15rem; accent-color: var(--blue); flex: 0 0 auto; }
+.qopt:has(input:checked) {
+  border-color: var(--navy);
+  background: rgba(31, 56, 100, 0.05);
+}
+.qopt input:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+/* ---------- Feed-through readout (dark callout) ------------------ */
+.feed-readout { display: flex; flex-wrap: wrap; gap: 1rem; }
+.feed-readout > div {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 9rem;
+}
+.feed-num {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
