@@ -748,6 +748,50 @@ input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(
 }
 .qopt input:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
+/* ---------- Regulatory & standards basis cards ------------------- */
+.reg-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) { .reg-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .reg-grid { grid-template-columns: repeat(4, 1fr); } }
+.reg-card {
+  background: #fff;
+  border: 1px solid rgba(31, 56, 100, 0.1);
+  border-left: 3px solid var(--navy);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+}
+.reg-card.reg-cyber  { border-left-color: var(--blue); }
+.reg-card.reg-data   { border-left-color: var(--teal); }
+.reg-card.reg-policy { border-left-color: var(--amber); }
+.reg-card.reg-intl   { border-left-color: var(--navy); }
+.reg-tag {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--teal);
+  background: rgba(42, 157, 143, 0.1);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+.reg-card h3 {
+  font-family: "Spectral", serif;
+  font-weight: 600;
+  font-size: 1.02rem;
+  color: var(--navy);
+  margin-top: 0.55rem;
+  line-height: 1.25;
+}
+.reg-card p {
+  font-size: 0.78rem;
+  color: rgba(31, 56, 100, 0.65);
+  margin-top: 0.5rem;
+  line-height: 1.55;
+}
+
 /* ---------- Feed-through readout (dark callout) ------------------ */
 .feed-readout { display: flex; flex-wrap: wrap; gap: 1rem; }
 .feed-readout > div {
