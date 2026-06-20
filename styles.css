@@ -57,11 +57,13 @@ body { -webkit-font-smoothing: antialiased; }
 }
 .hero-dark > div { position: relative; z-index: 1; }
 
-/* Formula card on a dark background */
-.formula-dark {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.14);
-  border-left-color: var(--amber);
+/* Formula card on a dark background.
+   Note: uses .formula.formula-dark (specificity 0,2,0) so it overrides the
+   base .formula rules defined later in this file. */
+.formula.formula-dark {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.16);
+  border-left: 3px solid var(--amber);
   box-shadow: 0 18px 50px -24px rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(2px);
 }
