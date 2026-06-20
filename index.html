@@ -46,23 +46,23 @@
   <!-- ============================================================ -->
   <!-- HERO                                                          -->
   <!-- ============================================================ -->
-  <header class="border-b border-navy/10">
+  <header class="hero-dark">
     <div class="mx-auto max-w-6xl px-6 pt-16 pb-20 md:pt-24 md:pb-28">
-      <p class="eyebrow text-navy/55">
+      <p class="eyebrow text-amber">
         Thesis Demonstration · Context-Aware Risk Scoring
       </p>
 
-      <h1 class="font-serif text-4xl sm:text-5xl md:text-[64px] font-600 leading-[1.05] tracking-tight text-navy mt-6 max-w-4xl">
+      <h1 class="font-serif text-4xl sm:text-5xl md:text-[64px] font-600 leading-[1.05] tracking-tight text-white mt-6 max-w-4xl">
         Beyond CVSS:<br class="hidden sm:block" />
-        a <span class="text-blue">context-aware</span> risk-rating model.
+        a <span class="text-blue-300">context-aware</span> risk-rating model.
       </h1>
 
       <div class="mt-6 h-px w-24 bg-amber"></div>
 
-      <p class="font-serif italic text-2xl md:text-3xl text-navy/80 mt-6">
+      <p class="font-serif italic text-2xl md:text-3xl text-paper/90 mt-6">
         Severity is not the same as risk.
       </p>
-      <p class="max-w-2xl text-base md:text-lg text-navy/65 mt-5 leading-relaxed">
+      <p class="max-w-2xl text-base md:text-lg text-paper/65 mt-5 leading-relaxed">
         A context-aware cybersecurity maturity framework for higher-education
         institutions — one risk-weighted score that fuses technical severity,
         real-world exploitation likelihood, and the institutional context an
@@ -70,12 +70,12 @@
       </p>
 
       <!-- Formula display -->
-      <figure class="formula mt-12 max-w-3xl">
+      <figure class="formula formula-dark mt-12 max-w-3xl">
         <figcaption class="eyebrow text-teal mb-3">The Model · 0–10 scale</figcaption>
         <div class="formula-eq font-mono">
           R &nbsp;=&nbsp; 10 &nbsp;×&nbsp; ( w<sub>1</sub>·s &nbsp;+&nbsp; w<sub>2</sub>·e &nbsp;+&nbsp; w<sub>3</sub>·c &nbsp;+&nbsp; w<sub>4</sub>·x )
         </div>
-        <dl class="formula-where mt-5 font-mono text-sm text-navy/70">
+        <dl class="formula-where mt-5 font-mono text-sm">
           <div><dt>s</dt><dd>CVSS base score ÷ 10</dd><dd class="muted">technical severity</dd></div>
           <div><dt>e</dt><dd>EPSS-style probability</dd><dd class="muted">real-world exploit activity</dd></div>
           <div><dt>c</dt><dd>asset criticality (0–1)</dd><dd class="muted">institutional value</dd></div>
@@ -86,7 +86,7 @@
 
       <div class="mt-10 flex flex-wrap gap-3">
         <a href="#try" class="btn-primary">Try the model →</a>
-        <a href="#priority" class="btn-ghost">See prioritisation flip</a>
+        <a href="#priority" class="btn-ghost-dark">See prioritisation flip</a>
       </div>
     </div>
   </header>
